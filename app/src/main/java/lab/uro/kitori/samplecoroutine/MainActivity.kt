@@ -3,8 +3,9 @@ package lab.uro.kitori.samplecoroutine
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import kotlinx.coroutines.*
-import kotlinx.coroutines.android.UI
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import lab.uro.kitori.samplecoroutine.databinding.ActivityMainBinding
 import kotlin.coroutines.coroutineContext
 
@@ -35,21 +36,21 @@ class MainActivity : AppCompatActivity() {
 
         if (::job.isInitialized && job.isActive) job.cancel()
 
-        job = launch(UI) {
-            try {
-                var count = COUNT_DOWN_INIT_VAL
-                while (true) {
-                    setText(count.toString())
-                    count -= countDown().await()
+        job = launchExt() {
+            var count = COUNT_DOWN_INIT_VAL
+            while (it.isActive) {
+                setText(count.toString())
+                count -= countDown().await()
 
-                    if (count == 0) break
-                }
-                setText("Hello Coroutine!!")
-            } catch (e: CancellationException) {
-                setText("cancel...")
-            } catch (e: Exception) {
-                setText("error...")
+                if (count == 0) break
             }
+            setText("Hello Coroutine!!")
+        } cancel { _, _ ->
+            setText("cancel...")
+        } error { _, _ ->
+            setText("error...")
+//        } cleanUp {
+//            setText("cleanUp...")
         }
     }
 
