@@ -3,71 +3,29 @@ package lab.uro.kitori.samplecoroutine
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import androidx.lifecycle.ViewModelProviders
 import lab.uro.kitori.samplecoroutine.databinding.ActivityMainBinding
-import kotlin.coroutines.coroutineContext
 
 class MainActivity : AppCompatActivity() {
-    companion object {
-        private const val COUNT_DOWN_INIT_VAL = 3
-    }
-
     private lateinit var binding: ActivityMainBinding
-    private lateinit var job: Job
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
-        binding.cancel.setOnClickListener {
-            onClickCancel()
+        binding.cancelButton.setOnClickListener {
+            viewModel.cancel()
+            binding.resultTextView.text = "cancel!!"
         }
-        binding.start.setOnClickListener {
-            onClickStart()
+        binding.cancelChildrenButton.setOnClickListener {
+            viewModel.cancelChildren()
+            binding.resultTextView.text = "cancelChildren!!"
         }
 
-        startCoroutine()
-    }
-
-    private fun startCoroutine() {
-        setText("")
-
-        if (::job.isInitialized && job.isActive) job.cancel()
-
-        job = launchExt() {
-            var count = COUNT_DOWN_INIT_VAL
-            while (it.isActive) {
-                setText(count.toString())
-                count -= countDown().await()
-
-                if (count == 0) break
-            }
-            setText("Hello Coroutine!!")
-        } cancel { _, _ ->
-            setText("cancel...")
-        } error { _, _ ->
-            setText("error...")
-//        } cleanUp {
-//            setText("cleanUp...")
-        }
-    }
-
-    private suspend fun countDown() = async(coroutineContext) {
-        delay(1000L)
-        1
-    }
-
-    private fun onClickCancel() {
-        if (job.isActive) job.cancel()
-    }
-
-    private fun onClickStart() {
-        startCoroutine()
-    }
-
-    private fun setText(text: String) {
-        binding.result.text = text
+        viewModel.start()
+        binding.resultTextView.text = "start..."
     }
 }
