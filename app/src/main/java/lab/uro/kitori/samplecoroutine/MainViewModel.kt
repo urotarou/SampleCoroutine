@@ -29,7 +29,7 @@ class MainViewModel(
                 sample.sample3()
                 sample.sample4()
                 sample.sample5()
-                sample.sample6() // コメント解除するとここでブロックされる
+//                sample.sample6() // !!! コメント解除するとここでブロックされる !!!
 
                 Timber.d("!!! ...end")
             } catch (exception: CancellationException) {
