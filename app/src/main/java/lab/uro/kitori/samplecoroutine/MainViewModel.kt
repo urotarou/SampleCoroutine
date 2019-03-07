@@ -19,17 +19,19 @@ class MainViewModel(
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
     fun start() {
-        CoroutineScope(coroutineContext).launch {
+        launch {
             try {
                 Timber.d("!!! start... thread= ${Thread.currentThread().name}")
 
                 val sample = Sample()
-                sample.sample1()
-                sample.sample2()
-                sample.sample3()
-                sample.sample4()
-                sample.sample5()
+//                sample.sample1()
+//                sample.sample2()
+//                sample.sample3()
+//                sample.sample4()
+//                sample.sample5()
 //                sample.sample6() // !!! コメント解除するとここでブロックされる !!!
+                sample.sample7()
+                sample.sample8()
 
                 Timber.d("!!! ...end")
             } catch (exception: CancellationException) {

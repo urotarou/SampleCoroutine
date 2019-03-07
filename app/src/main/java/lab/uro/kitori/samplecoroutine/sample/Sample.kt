@@ -4,6 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -99,6 +100,76 @@ class Sample {
             } catch (exception: CancellationException) {
                 Timber.d("!!! sample 6 cancel: $exception")
             }
+        }
+    }
+
+    // 並行処理 その1
+    suspend fun sample7() {
+        CoroutineScope(coroutineContext + Dispatchers.Default).launch {
+            runCatching {
+                Timber.d("!!! sample 7: thread= ${Thread.currentThread().name}")
+
+                val deferred1 = async {
+                    Timber.d("!!! async 7-1 start")
+                    delay(10_000)
+                    Timber.d("!!! async 7-1 end")
+                    1
+                }
+                val deferred2 = async {
+                    Timber.d("!!! async 7-2 start")
+                    delay(1_000)
+                    Timber.d("!!! async 7-2 end")
+                    2
+                }
+                val deferred3 = async {
+                    Timber.d("!!! async 7-3 start")
+                    delay(5_000)
+                    Timber.d("!!! async 7-3 end")
+                    4
+                }
+                delay(3_000)
+                Timber.d("!!! sample 7 wait...")
+                deferred1.await() + deferred2.await() + deferred3.await()
+            }.fold({
+                Timber.d("!!! sample 7 end: $it")
+            }, {
+                Timber.d("!!! sample 7 cancel: $it")
+            })
+        }
+    }
+
+    // 並行処理...できてない、これは直列 その2
+    suspend fun sample8() {
+        CoroutineScope(coroutineContext + Dispatchers.Default).launch {
+            runCatching {
+                Timber.d("!!! sample 8: thread= ${Thread.currentThread().name}")
+
+                Timber.d("!!! sample 8 wait...")
+                val value1 = async {
+                    Timber.d("!!! async 8-1 start")
+                    delay(10_000)
+                    Timber.d("!!! async 8-1 end")
+                    1
+                }.await()
+                val value2 = async {
+                    Timber.d("!!! async 8-2 start")
+                    delay(1_000)
+                    Timber.d("!!! async 8-2 end")
+                    2
+                }.await()
+                val value3 = async {
+                    Timber.d("!!! async 8-3 start")
+                    delay(5_000)
+                    Timber.d("!!! async 8-3 end")
+                    4
+                }.await()
+                delay(3_000)
+                value1 + value2 + value3
+            }.fold({
+                Timber.d("!!! sample 8 end: $it")
+            }, {
+                Timber.d("!!! sample 8 cancel: $it")
+            })
         }
     }
 }
