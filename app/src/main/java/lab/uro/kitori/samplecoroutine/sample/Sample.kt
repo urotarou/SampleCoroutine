@@ -177,13 +177,11 @@ class Sample {
     // 別Threadで死ぬと救えない
     suspend fun sample9() {
         CoroutineScope(Dispatchers.Default).launch {
-            var thread: Thread? = null
-
             supervisorScope {
                 runCatching {
                     Timber.d("!!! sample 9: thread= ${Thread.currentThread().name}")
 
-                    thread = Thread(Runnable {
+                    val thread = Thread(Runnable {
                         Timber.d("!!! sample 9: sub thread start: ${Thread.currentThread().name}")
 
 //                        throw RuntimeException("crash!!") // try-catchしないとアプリが死ぬ
@@ -195,12 +193,13 @@ class Sample {
 
                         Timber.d("!!! sample 9: sub thread end")
                     })
-                    thread?.start()
+                    thread.start()
 
                     delay(1_000)
+                    Timber.d("!!! sample 9: sub thread alive= ${thread.isAlive}")
                     true
                 }.fold({
-                    Timber.d("!!! sample 9 end: $it, thread alive: ${thread?.isAlive}")
+                    Timber.d("!!! sample 9 end: $it")
                 }, {
                     Timber.d("!!! sample 9 cancel: $it")
                 })
