@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import timber.log.Timber
 import kotlin.coroutines.coroutineContext
 
@@ -170,6 +171,40 @@ class Sample {
             }, {
                 Timber.d("!!! sample 8 cancel: $it")
             })
+        }
+    }
+
+    // 別Threadで死ぬと救えない
+    suspend fun sample9() {
+        CoroutineScope(Dispatchers.Default).launch {
+            var thread: Thread? = null
+
+            supervisorScope {
+                runCatching {
+                    Timber.d("!!! sample 9: thread= ${Thread.currentThread().name}")
+
+                    thread = Thread(Runnable {
+                        Timber.d("!!! sample 9: sub thread start: ${Thread.currentThread().name}")
+
+//                        throw RuntimeException("crash!!") // try-catchしないとアプリが死ぬ
+                        try {
+                            throw RuntimeException("crash!!")
+                        } catch (exception: Exception) {
+                            Timber.d("!!! sample 9: crash-> $exception")
+                        }
+
+                        Timber.d("!!! sample 9: sub thread end")
+                    })
+                    thread?.start()
+
+                    delay(1_000)
+                    true
+                }.fold({
+                    Timber.d("!!! sample 9 end: $it, thread alive: ${thread?.isAlive}")
+                }, {
+                    Timber.d("!!! sample 9 cancel: $it")
+                })
+            }
         }
     }
 }
