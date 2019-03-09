@@ -2,7 +2,6 @@ package lab.uro.kitori.samplecoroutine
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,10 +17,17 @@ class MainViewModel(
     private val job = SupervisorJob()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
+    }
+
     fun start() {
         launch {
-            try {
-                Timber.d("!!! start... thread= ${Thread.currentThread().name}")
+            Timber.d("!!! start... thread= ${Thread.currentThread().name}")
+
+            runCatching {
+                Timber.d("!!! runCatching... thread= ${Thread.currentThread().name}")
 
                 val sample = Sample()
 //                sample.sample1()
@@ -30,13 +36,14 @@ class MainViewModel(
 //                sample.sample4()
 //                sample.sample5()
 //                sample.sample6() // !!! コメント解除するとここでブロックされる !!!
-                sample.sample7()
-                sample.sample8()
-
+//                sample.sample7()
+//                sample.sample8()
+                sample.sample9()
+            }.fold({
                 Timber.d("!!! ...end")
-            } catch (exception: CancellationException) {
-                Timber.d("!!! cancel parent: $exception")
-            }
+            }, {
+                Timber.d("!!! cancel parent: $it")
+            })
         }
     }
 
